@@ -1,4 +1,4 @@
-module moul.io/http2curl/v2
+module github.com/suifengpiao14/http2curl
 
 go 1.13
 

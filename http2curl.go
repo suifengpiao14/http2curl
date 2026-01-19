@@ -69,6 +69,9 @@ func GetCurlCommand(req *http.Request) (*CurlCommand, error) {
 	var keys []string
 
 	for k := range req.Header {
+		if strings.EqualFold(k, "Content-Length") { //drop centent-length header, it will be changed by modifing parameters
+			continue
+		}
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
