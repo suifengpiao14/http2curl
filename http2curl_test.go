@@ -62,6 +62,7 @@ func ExampleGetCurlCommand_slice() {
 func ExampleGetCurlCommand_noBody() {
 	req, _ := http.NewRequest("PUT", "http://www.example.com/abc/def.ghi?jlk=mno&pqr=stu", nil)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Length", "123")
 
 	command, _ := GetCurlCommand(req)
 	fmt.Println(command)
