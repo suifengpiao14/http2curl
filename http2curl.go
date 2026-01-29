@@ -3,7 +3,7 @@ package http2curl
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"sort"
 	"strings"
@@ -51,19 +51,30 @@ func GetCurlCommand(req *http.Request) (*CurlCommand, error) {
 	}
 
 	command.append("-X", bashEscape(req.Method))
+	var bodyByte []byte
+	if req.GetBody != nil {
+		if bodyIO, err := req.GetBody(); err == nil {
+			defer bodyIO.Close()
+			bodyByte, err = io.ReadAll(bodyIO)
+			if err != nil {
+				return nil, fmt.Errorf("getCurlCommand:  read from req.GetBody() error: %w", err)
+			}
+		}
+	}
 
-	if req.Body != nil {
-		var buff bytes.Buffer
-		_, err := buff.ReadFrom(req.Body)
+	if len(bodyByte) == 0 && req.Body != nil {
+		var err error
+		bodyByte, err = io.ReadAll(req.Body)
 		if err != nil {
 			return nil, fmt.Errorf("getCurlCommand: buffer read from body error: %w", err)
 		}
 		// reset body for potential re-reads
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(buff.Bytes()))
-		if len(buff.String()) > 0 {
-			bodyEscaped := bashEscape(buff.String())
-			command.append("-d", bodyEscaped)
-		}
+		req.Body = io.NopCloser(bytes.NewBuffer(bodyByte))
+	}
+
+	if len(bodyByte) > 0 {
+		bodyEscaped := bashEscape(string(bodyByte))
+		command.append("-d", bodyEscaped)
 	}
 
 	var keys []string
