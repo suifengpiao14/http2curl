@@ -23,11 +23,14 @@ func (c *CurlCommand) String() string {
 }
 
 func bashEscape(str string) string {
-	return `'` + strings.Replace(str, `'`, `'\''`, -1) + `'`
+	return `'` + strings.ReplaceAll(str, `'`, `'\''`) + `'`
 }
 
 // GetCurlCommand returns a CurlCommand corresponding to an http.Request
 func GetCurlCommand(req *http.Request) (*CurlCommand, error) {
+	if req == nil {
+		return nil, fmt.Errorf("getCurlCommand: invalid request")
+	}
 	if req.URL == nil {
 		return nil, fmt.Errorf("getCurlCommand: invalid request, req.URL is nil")
 	}
