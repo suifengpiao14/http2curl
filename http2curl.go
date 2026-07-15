@@ -34,6 +34,12 @@ var (
 		"Connection":        {},
 		"Expect":            {},
 		"Content-Length":    {},
+		"Referer":           {},
+		"X-Real-Address":    {},
+		"X-Real-Hos":        {},
+		"Origin":            {},
+		"Accept-Language":   {},
+		"X-Real-Host":       {},
 	}
 )
 
@@ -92,9 +98,9 @@ func GetCurlCommand(req *http.Request) (*CurlCommand, error) {
 	}
 
 	var keys []string
-
+	IgnoredHeaders["Content-Length"] = struct{}{} // drop centent-length header, it will be changed by modifing parameters
 	for k := range req.Header {
-		if _, ok := IgnoredHeaders[k]; ok { //drop centent-length header, it will be changed by modifing parameters
+		if _, ok := IgnoredHeaders[k]; ok {
 			continue
 		}
 		keys = append(keys, k)
