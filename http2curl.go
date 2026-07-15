@@ -26,6 +26,17 @@ func bashEscape(str string) string {
 	return `'` + strings.ReplaceAll(str, `'`, `'\''`) + `'`
 }
 
+var (
+	IgnoredHeaders = map[string]struct{}{
+		"Accept-Encoding":   {},
+		"User-Agent":        {},
+		"Transfer-Encoding": {},
+		"Connection":        {},
+		"Expect":            {},
+		"Content-Length":    {},
+	}
+)
+
 // GetCurlCommand returns a CurlCommand corresponding to an http.Request
 func GetCurlCommand(req *http.Request) (*CurlCommand, error) {
 	if req == nil {
@@ -83,7 +94,7 @@ func GetCurlCommand(req *http.Request) (*CurlCommand, error) {
 	var keys []string
 
 	for k := range req.Header {
-		if strings.EqualFold(k, "Content-Length") { //drop centent-length header, it will be changed by modifing parameters
+		if _, ok := IgnoredHeaders[k]; ok { //drop centent-length header, it will be changed by modifing parameters
 			continue
 		}
 		keys = append(keys, k)
