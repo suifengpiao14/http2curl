@@ -27,6 +27,7 @@ func bashEscape(str string) string {
 }
 
 var (
+	// 使用排除部分头部是为了简化curl命令,能保证用户自定义的头部一定存在，保证curl命令能用，若采用容许头部，则用户自定义头部一般会被忽略，导致curl命令不能用。
 	IgnoredHeaders = map[string]struct{}{
 		"Accept-Encoding":   {},
 		"User-Agent":        {},
@@ -40,6 +41,8 @@ var (
 		"Origin":            {},
 		"Accept-Language":   {},
 		"X-Real-Host":       {},
+		"Accept":            {},
+		"X-Forwarded-For":   {},
 	}
 )
 
