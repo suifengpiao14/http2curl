@@ -44,6 +44,9 @@ var (
 		"Accept":            {},
 		"X-Forwarded-For":   {},
 	}
+	mustIgnoredHeaders = map[string]struct{}{ // 必须忽略的头，外部不能改，不可用动态修改全局变量IgnoredHeaders，会存在并发问题
+		"Content-Length": {},
+	}
 )
 
 // GetCurlCommand returns a CurlCommand corresponding to an http.Request
@@ -101,8 +104,10 @@ func GetCurlCommand(req *http.Request) (*CurlCommand, error) {
 	}
 
 	var keys []string
-	IgnoredHeaders["Content-Length"] = struct{}{} // drop centent-length header, it will be changed by modifing parameters
 	for k := range req.Header {
+		if _, ok := mustIgnoredHeaders[k]; ok {
+			continue
+		}
 		if _, ok := IgnoredHeaders[k]; ok {
 			continue
 		}
