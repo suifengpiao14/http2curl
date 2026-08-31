@@ -49,13 +49,33 @@ var (
 	}
 )
 
+// curlConfig GetCurlCommand 的可配置项
+type curlConfig struct {
+	proxy string // 正向代理地址，非空时生成 -x 参数
+}
+
+// CurlOption GetCurlCommand 的可选配置函数
+type CurlOption func(config *curlConfig)
+
+// WithProxy 设置正向代理地址，生成的 curl 命令会追加 -x 参数，便于手工复现经代理发送的请求
+func WithProxy(proxyAddr string) CurlOption {
+	return func(config *curlConfig) {
+		config.proxy = strings.TrimSpace(proxyAddr)
+	}
+}
+
 // GetCurlCommand returns a CurlCommand corresponding to an http.Request
-func GetCurlCommand(req *http.Request) (*CurlCommand, error) {
+func GetCurlCommand(req *http.Request, opts ...CurlOption) (*CurlCommand, error) {
 	if req == nil {
 		return nil, fmt.Errorf("getCurlCommand: invalid request")
 	}
 	if req.URL == nil {
 		return nil, fmt.Errorf("getCurlCommand: invalid request, req.URL is nil")
+	}
+
+	config := curlConfig{}
+	for _, opt := range opts {
+		opt(&config)
 	}
 
 	command := CurlCommand{}
@@ -122,6 +142,10 @@ func GetCurlCommand(req *http.Request) (*CurlCommand, error) {
 	command.append(bashEscape(requestURL))
 
 	command.append("--compressed")
+
+	if config.proxy != "" { // 正向代理参数，便于手工复现
+		command.append("-x", bashEscape(config.proxy))
+	}
 
 	return &command, nil
 }
